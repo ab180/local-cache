@@ -32,13 +32,17 @@ async function restoreImpl(): Promise<string | undefined> {
         const find = await utils.exec(
             `find "${localCachePath}" -maxdepth 1 -name "${key}" -type d`
         );
-        const partialCache = await utils.exec(
-            `[ -d "${localCachePath}/${key}" ] && find "${localCachePath}/${key}" -maxdepth 1 -name .partialCache -type f`
-        );
-
         const cacheFind = find.stdout ? true : false;
-        const cachePartial = partialCache.stdout ? true : false;
-        const cacheHit = cacheFind && !cachePartial;
+
+        let cacheHit = false;
+        if (cacheFind) {
+            const hasPartialCache = await utils.exec(
+                `find "${localCachePath}/${key}" -maxdepth 1 -name .partialCache -type f`
+            );
+            const cacheHit = hasPartialCache.stdout ? false : true;
+        } else {
+            cacheHit = false;
+        }
 
         if (!cacheHit) {
             if (failOnCacheMiss) {
