@@ -65,6 +65,7 @@ async function restoreImpl(): Promise<string | undefined> {
                     .createHash("md5")
                     .update(path)
                     .digest("hex");
+                await utils.exec(`mkdir -p "${path}"`);
                 await utils.exec(
                     `tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`
                 );
