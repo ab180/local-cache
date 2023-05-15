@@ -34,6 +34,7 @@ async function saveImpl(): Promise<void> {
             required: true
         });
 
+        await utils.exec(`mkdir -p ${cachePath}/${key}`);
         await utils.exec(`touch ${cachePath}/${key}/.partialCache`);
         for (const path of paths) {
             const pathKey = crypto.createHash("md5").update(path).digest("hex");

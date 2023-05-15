@@ -3130,6 +3130,7 @@ function saveImpl() {
             const paths = actionUtils.getInputAsArray(constants_1.Inputs.Path, {
                 required: true
             });
+            yield utils.exec(`mkdir -p ${cachePath}/${key}`);
             yield utils.exec(`touch ${cachePath}/${key}/.partialCache`);
             for (const path of paths) {
                 const pathKey = crypto.createHash("md5").update(path).digest("hex");
