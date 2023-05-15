@@ -1187,8 +1187,8 @@ const checkKey = (key) => {
     }
 };
 exports.checkKey = checkKey;
-const exec = (command) => __awaiter(void 0, void 0, void 0, function* () {
-    const { stdout, stderr } = yield e.getExecOutput(command);
+const exec = (command, cwd) => __awaiter(void 0, void 0, void 0, function* () {
+    const { stdout, stderr } = yield e.getExecOutput(command, [], { cwd: cwd });
     return { stdout, stderr };
 });
 exports.exec = exec;
@@ -3134,7 +3134,7 @@ function saveImpl() {
             yield utils.exec(`touch ${cachePath}/.partialCache`);
             for (const path of paths) {
                 const pathKey = crypto.createHash("md5").update(path).digest("hex");
-                yield utils.exec(`cd "${path}" && tar -czf "/tmp/${pathKey}.tar.gz" .`);
+                yield utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
                 yield utils.exec(`rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`);
                 core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
             }

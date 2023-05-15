@@ -1187,8 +1187,8 @@ const checkKey = (key) => {
     }
 };
 exports.checkKey = checkKey;
-const exec = (command) => __awaiter(void 0, void 0, void 0, function* () {
-    const { stdout, stderr } = yield e.getExecOutput(command);
+const exec = (command, cwd) => __awaiter(void 0, void 0, void 0, function* () {
+    const { stdout, stderr } = yield e.getExecOutput(command, [], { cwd: cwd });
     return { stdout, stderr };
 });
 exports.exec = exec;

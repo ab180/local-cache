@@ -31,8 +31,9 @@ export const checkKey = (key: string): void => {
 };
 
 export const exec = async (
-    command: string
+    command: string,
+    cwd?: string
 ): Promise<{ stdout: string; stderr: string }> => {
-    const { stdout, stderr } = await e.getExecOutput(command);
+    const { stdout, stderr } = await e.getExecOutput(command, [], { cwd: cwd });
     return { stdout, stderr };
 };
