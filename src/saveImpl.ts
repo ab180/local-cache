@@ -37,8 +37,8 @@ async function saveImpl(): Promise<void> {
         await utils.exec(`touch ${cachePath}/${key}/.partialCache`);
         for (const path of paths) {
             const pathKey = crypto.createHash("md5").update(path).digest("hex");
-            await utils.exec(`rsync -a ${path} ${cachePath}/${pathKey} `);
-            core.info(`Cache saved to key: ${path} -> ${key}/${pathKey}`);
+            await utils.exec(`rsync -a "${path}" "${cachePath}/${pathKey}" `);
+            core.info(`Cache saved to key: "${path}" -> "${key}/${pathKey}"`);
         }
         await utils.exec(`rm ${cachePath}/${key}/.partialCache`);
     } catch (error: unknown) {
