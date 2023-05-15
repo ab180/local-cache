@@ -1,22 +1,15 @@
-import * as cache from "@actions/cache";
 import * as core from "@actions/core";
+import * as crypto from "crypto";
 
-import { Events, Inputs, Outputs, State } from "./constants";
-import { IStateProvider } from "./stateProvider";
-import * as utils from "./utils/actionUtils";
+import { Events, Inputs } from "./constants";
+import * as actionUtils from "./utils/actionUtils";
+import * as utils from "./utils/utils";
 
-async function restoreImpl(
-    stateProvider: IStateProvider
-): Promise<string | undefined> {
+async function restoreImpl(): Promise<string | undefined> {
     try {
-        if (!utils.isCacheFeatureAvailable()) {
-            core.setOutput(Outputs.CacheHit, "false");
-            return;
-        }
-
         // Validate inputs, this can cause task failure
-        if (!utils.isValidEvent()) {
-            utils.logWarning(
+        if (!actionUtils.isValidEvent()) {
+            actionUtils.logWarning(
                 `Event Validation Error: The event type ${
                     process.env[Events.Key]
                 } is not supported because it's not tied to a branch or tag ref.`
@@ -24,59 +17,51 @@ async function restoreImpl(
             return;
         }
 
-        const primaryKey = core.getInput(Inputs.Key, { required: true });
-        stateProvider.setState(State.CachePrimaryKey, primaryKey);
+        const key = core.getInput(Inputs.Key, { required: true });
 
-        const restoreKeys = utils.getInputAsArray(Inputs.RestoreKeys);
-        const cachePaths = utils.getInputAsArray(Inputs.Path, {
+        const paths = actionUtils.getInputAsArray(Inputs.Path, {
             required: true
         });
-        const enableCrossOsArchive = utils.getInputAsBool(
-            Inputs.EnableCrossOsArchive
+        const failOnCacheMiss = actionUtils.getInputAsBool(
+            Inputs.FailOnCacheMiss
         );
-        const failOnCacheMiss = utils.getInputAsBool(Inputs.FailOnCacheMiss);
-        const lookupOnly = utils.getInputAsBool(Inputs.LookupOnly);
+        const lookupOnly = actionUtils.getInputAsBool(Inputs.LookupOnly);
+        const localCachePath = core.getInput(Inputs.LocalCachePath);
 
-        const cacheKey = await cache.restoreCache(
-            cachePaths,
-            primaryKey,
-            restoreKeys,
-            { lookupOnly: lookupOnly },
-            enableCrossOsArchive
+        const find = await utils.exec(
+            `find ${localCachePath} -maxdepth 1 -name ${key} -type d`
         );
+        const cacheHit = find.stdout ? true : false;
 
-        if (!cacheKey) {
+        if (!cacheHit) {
             if (failOnCacheMiss) {
                 throw new Error(
-                    `Failed to restore cache entry. Exiting as fail-on-cache-miss is set. Input key: ${primaryKey}`
+                    `Failed to restore cache entry. Exiting as fail-on-cache-miss is set. Input key: ${key}`
                 );
             }
-            core.info(
-                `Cache not found for input keys: ${[
-                    primaryKey,
-                    ...restoreKeys
-                ].join(", ")}`
-            );
+            core.info(`Cache not found for input keys: ${key}.`);
 
             return;
         }
+        const cachePath = `${localCachePath}/${key}`;
 
-        // Store the matched cache key in states
-        stateProvider.setState(State.CacheMatchedKey, cacheKey);
-
-        const isExactKeyMatch = utils.isExactKeyMatch(
-            core.getInput(Inputs.Key, { required: true }),
-            cacheKey
-        );
-
-        core.setOutput(Outputs.CacheHit, isExactKeyMatch.toString());
         if (lookupOnly) {
-            core.info(`Cache found and can be restored from key: ${cacheKey}`);
+            core.info(`Cache found and can be restored from key: ${key}`);
         } else {
-            core.info(`Cache restored from key: ${cacheKey}`);
+            // iterate paths
+            for (const path of paths) {
+                const pathKey = crypto
+                    .createHash("md5")
+                    .update(path)
+                    .digest("hex");
+                await utils.exec(`ln -s ${cachePath}/${pathKey} ${path}`);
+                core.info(
+                    `Cache restored from key: ${key}/${path} -> ${pathKey}`
+                );
+            }
         }
 
-        return cacheKey;
+        return key;
     } catch (error: unknown) {
         core.setFailed((error as Error).message);
     }

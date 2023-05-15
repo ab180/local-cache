@@ -1,24 +1,19 @@
-import * as cache from "@actions/cache";
 import * as core from "@actions/core";
+import * as crypto from "crypto";
 
-import { Events, Inputs, State } from "./constants";
-import { IStateProvider } from "./stateProvider";
-import * as utils from "./utils/actionUtils";
+import { Events, Inputs } from "./constants";
+import * as actionUtils from "./utils/actionUtils";
+import * as utils from "./utils/utils";
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
 // throw an uncaught exception.  Instead of failing this action, just warn.
-process.on("uncaughtException", e => utils.logWarning(e.message));
+process.on("uncaughtException", e => actionUtils.logWarning(e.message));
 
-async function saveImpl(stateProvider: IStateProvider): Promise<number | void> {
-    let cacheId = -1;
+async function saveImpl(): Promise<void> {
     try {
-        if (!utils.isCacheFeatureAvailable()) {
-            return;
-        }
-
-        if (!utils.isValidEvent()) {
-            utils.logWarning(
+        if (!actionUtils.isValidEvent()) {
+            actionUtils.logWarning(
                 `Event Validation Error: The event type ${
                     process.env[Events.Key]
                 } is not supported because it's not tied to a branch or tag ref.`
@@ -26,50 +21,27 @@ async function saveImpl(stateProvider: IStateProvider): Promise<number | void> {
             return;
         }
 
-        // If restore has stored a primary key in state, reuse that
-        // Else re-evaluate from inputs
-        const primaryKey =
-            stateProvider.getState(State.CachePrimaryKey) ||
-            core.getInput(Inputs.Key);
+        const key = core.getInput(Inputs.Key);
 
-        if (!primaryKey) {
-            utils.logWarning(`Key is not specified.`);
+        if (!key) {
+            actionUtils.logWarning(`Key is not specified.`);
             return;
         }
 
-        // If matched restore key is same as primary key, then do not save cache
-        // NO-OP in case of SaveOnly action
-        const restoredKey = stateProvider.getCacheState();
-
-        if (utils.isExactKeyMatch(primaryKey, restoredKey)) {
-            core.info(
-                `Cache hit occurred on the primary key ${primaryKey}, not saving cache.`
-            );
-            return;
-        }
-
-        const cachePaths = utils.getInputAsArray(Inputs.Path, {
+        const localCachePath = core.getInput(Inputs.LocalCachePath);
+        const cachePath = `${localCachePath}/${key}`;
+        const paths = actionUtils.getInputAsArray(Inputs.Path, {
             required: true
         });
 
-        const enableCrossOsArchive = utils.getInputAsBool(
-            Inputs.EnableCrossOsArchive
-        );
-
-        cacheId = await cache.saveCache(
-            cachePaths,
-            primaryKey,
-            { uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize) },
-            enableCrossOsArchive
-        );
-
-        if (cacheId != -1) {
-            core.info(`Cache saved with key: ${primaryKey}`);
+        for (const path of paths) {
+            const pathKey = crypto.createHash("md5").update(path).digest("hex");
+            await utils.exec(`rsync -a ${path} ${cachePath}/${pathKey} `);
+            core.info(`Cache saved to key: ${path} -> ${key}/${pathKey}`);
         }
     } catch (error: unknown) {
-        utils.logWarning((error as Error).message);
+        actionUtils.logWarning((error as Error).message);
     }
-    return cacheId;
 }
 
 export default saveImpl;
