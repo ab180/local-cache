@@ -70,9 +70,10 @@ async function restoreImpl(): Promise<string | undefined> {
                     `tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`
                 );
                 core.info(
-                    `Cache restored from key: ${key}/${path} -> ${pathKey}`
+                    `Cache restored from key: ${key}${path} -> ${pathKey}`
                 );
             }
+            core.saveState("cacheHit", "true");
         }
 
         return key;

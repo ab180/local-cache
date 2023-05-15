@@ -4231,8 +4231,9 @@ function restoreImpl() {
                         .digest("hex");
                     yield utils.exec(`mkdir -p "${path}"`);
                     yield utils.exec(`tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`);
-                    core.info(`Cache restored from key: ${key}/${path} -> ${pathKey}`);
+                    core.info(`Cache restored from key: ${key}${path} -> ${pathKey}`);
                 }
+                core.saveState("cacheHit", "true");
             }
             return key;
         }

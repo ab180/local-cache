@@ -34,19 +34,26 @@ async function saveImpl(): Promise<void> {
             required: true
         });
 
-        await utils.exec(`mkdir -p ${cachePath}/`);
-        await utils.exec(`touch ${cachePath}/.partialCache`);
-        for (const path of paths) {
-            const pathKey = crypto.createHash("md5").update(path).digest("hex");
-            await utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
-            await utils.exec(
-                `rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`
-            );
-            core.info(
-                `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`
-            );
+        const cacheHit: string = core.getState("cacheHit");
+
+        if (cacheHit != "true") {
+            await utils.exec(`mkdir -p ${cachePath}/`);
+            await utils.exec(`touch ${cachePath}/.partialCache`);
+            for (const path of paths) {
+                const pathKey = crypto
+                    .createHash("md5")
+                    .update(path)
+                    .digest("hex");
+                await utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
+                await utils.exec(
+                    `rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`
+                );
+                core.info(
+                    `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`
+                );
+            }
+            await utils.exec(`rm ${cachePath}/.partialCache`);
         }
-        await utils.exec(`rm ${cachePath}/.partialCache`);
     } catch (error: unknown) {
         actionUtils.logWarning((error as Error).message);
     }

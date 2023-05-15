@@ -3130,15 +3130,21 @@ function saveImpl() {
             const paths = actionUtils.getInputAsArray(constants_1.Inputs.Path, {
                 required: true
             });
-            yield utils.exec(`mkdir -p ${cachePath}/`);
-            yield utils.exec(`touch ${cachePath}/.partialCache`);
-            for (const path of paths) {
-                const pathKey = crypto.createHash("md5").update(path).digest("hex");
-                yield utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
-                yield utils.exec(`rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`);
-                core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
+            const cacheHit = core.getState("cacheHit");
+            if (cacheHit != "true") {
+                yield utils.exec(`mkdir -p ${cachePath}/`);
+                yield utils.exec(`touch ${cachePath}/.partialCache`);
+                for (const path of paths) {
+                    const pathKey = crypto
+                        .createHash("md5")
+                        .update(path)
+                        .digest("hex");
+                    yield utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
+                    yield utils.exec(`rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`);
+                    core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
+                }
+                yield utils.exec(`rm ${cachePath}/.partialCache`);
             }
-            yield utils.exec(`rm ${cachePath}/.partialCache`);
         }
         catch (error) {
             actionUtils.logWarning(error.message);
