@@ -4229,7 +4229,7 @@ function restoreImpl() {
                         .createHash("md5")
                         .update(path)
                         .digest("hex");
-                    yield utils.exec(`tar -xzf "${cachePath}/${key}/${pathKey}.tar.gz" ${path}`);
+                    yield utils.exec(`tar -xzf "${cachePath}/${pathKey}.tar.gz" ${path}`);
                     core.info(`Cache restored from key: ${key}/${path} -> ${pathKey}`);
                 }
             }

@@ -39,10 +39,10 @@ async function saveImpl(): Promise<void> {
         for (const path of paths) {
             const pathKey = crypto.createHash("md5").update(path).digest("hex");
             await utils.exec(
-                `tar -czf "${cachePath}/${key}/${pathKey}.tar.gz" "${path}"`
+                `tar -czf "${cachePath}/${pathKey}.tar.gz" "${path}"`
             );
             core.info(
-                `Cache saved to key: "${path}" -> "${cachePath}/${key}/${pathKey}.tar.gz"`
+                `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`
             );
         }
         await utils.exec(`rm ${cachePath}/${key}/.partialCache`);
