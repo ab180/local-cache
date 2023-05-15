@@ -65,7 +65,9 @@ async function restoreImpl(): Promise<string | undefined> {
                     .createHash("md5")
                     .update(path)
                     .digest("hex");
-                await utils.exec(`ln -s ${cachePath}/${pathKey} ${path}`);
+                await utils.exec(
+                    `tar -xzf "${cachePath}/${key}/${pathKey}.tar.gz" ${path}`
+                );
                 core.info(
                     `Cache restored from key: ${key}/${path} -> ${pathKey}`
                 );

@@ -39,9 +39,11 @@ async function saveImpl(): Promise<void> {
         for (const path of paths) {
             const pathKey = crypto.createHash("md5").update(path).digest("hex");
             await utils.exec(
-                `rsync -a --perms --chmod=777 "${path}"/ "${cachePath}/${pathKey}" `
+                `tar -czf "${cachePath}/${key}/${pathKey}.tar.gz" "${path}"`
             );
-            core.info(`Cache saved to key: "${path}" -> "${key}/${pathKey}"`);
+            core.info(
+                `Cache saved to key: "${path}" -> "${cachePath}/${key}/${pathKey}.tar.gz"`
+            );
         }
         await utils.exec(`rm ${cachePath}/${key}/.partialCache`);
     } catch (error: unknown) {
