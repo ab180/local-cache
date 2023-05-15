@@ -28,6 +28,7 @@ async function restoreImpl(): Promise<string | undefined> {
         );
         const lookupOnly = actionUtils.getInputAsBool(Inputs.LookupOnly);
         const localCachePath = core.getInput(Inputs.LocalCachePath);
+        const cachePath = `${localCachePath}/${key}`;
 
         const find = await utils.exec(
             `find "${localCachePath}" -maxdepth 1 -name "${key}" -type d`
@@ -37,9 +38,9 @@ async function restoreImpl(): Promise<string | undefined> {
         let cacheHit = false;
         if (cacheFind) {
             const hasPartialCache = await utils.exec(
-                `find "${localCachePath}/${key}" -maxdepth 1 -name .partialCache -type f`
+                `find "${cachePath}" -maxdepth 1 -name .partialCache -type f`
             );
-            const cacheHit = hasPartialCache.stdout ? false : true;
+            cacheHit = hasPartialCache.stdout ? false : true;
         } else {
             cacheHit = false;
         }
@@ -54,7 +55,6 @@ async function restoreImpl(): Promise<string | undefined> {
 
             return;
         }
-        const cachePath = `${localCachePath}/${key}`;
 
         if (lookupOnly) {
             core.info(`Cache found and can be restored from key: ${key}`);

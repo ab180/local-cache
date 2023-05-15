@@ -34,8 +34,8 @@ async function saveImpl(): Promise<void> {
             required: true
         });
 
-        await utils.exec(`mkdir -p ${cachePath}/${key}`);
-        await utils.exec(`touch ${cachePath}/${key}/.partialCache`);
+        await utils.exec(`mkdir -p ${cachePath}/`);
+        await utils.exec(`touch ${cachePath}/.partialCache`);
         for (const path of paths) {
             const pathKey = crypto.createHash("md5").update(path).digest("hex");
             await utils.exec(
@@ -45,7 +45,7 @@ async function saveImpl(): Promise<void> {
                 `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`
             );
         }
-        await utils.exec(`rm ${cachePath}/${key}/.partialCache`);
+        await utils.exec(`rm ${cachePath}/.partialCache`);
     } catch (error: unknown) {
         actionUtils.logWarning((error as Error).message);
     }

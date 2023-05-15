@@ -4201,12 +4201,13 @@ function restoreImpl() {
             const failOnCacheMiss = actionUtils.getInputAsBool(constants_1.Inputs.FailOnCacheMiss);
             const lookupOnly = actionUtils.getInputAsBool(constants_1.Inputs.LookupOnly);
             const localCachePath = core.getInput(constants_1.Inputs.LocalCachePath);
+            const cachePath = `${localCachePath}/${key}`;
             const find = yield utils.exec(`find "${localCachePath}" -maxdepth 1 -name "${key}" -type d`);
             const cacheFind = find.stdout ? true : false;
             let cacheHit = false;
             if (cacheFind) {
-                const hasPartialCache = yield utils.exec(`find "${localCachePath}/${key}" -maxdepth 1 -name .partialCache -type f`);
-                const cacheHit = hasPartialCache.stdout ? false : true;
+                const hasPartialCache = yield utils.exec(`find "${cachePath}" -maxdepth 1 -name .partialCache -type f`);
+                cacheHit = hasPartialCache.stdout ? false : true;
             }
             else {
                 cacheHit = false;
@@ -4218,7 +4219,6 @@ function restoreImpl() {
                 core.info(`Cache not found for input keys: ${key}.`);
                 return;
             }
-            const cachePath = `${localCachePath}/${key}`;
             if (lookupOnly) {
                 core.info(`Cache found and can be restored from key: ${key}`);
             }

@@ -3130,14 +3130,14 @@ function saveImpl() {
             const paths = actionUtils.getInputAsArray(constants_1.Inputs.Path, {
                 required: true
             });
-            yield utils.exec(`mkdir -p ${cachePath}/${key}`);
-            yield utils.exec(`touch ${cachePath}/${key}/.partialCache`);
+            yield utils.exec(`mkdir -p ${cachePath}/`);
+            yield utils.exec(`touch ${cachePath}/.partialCache`);
             for (const path of paths) {
                 const pathKey = crypto.createHash("md5").update(path).digest("hex");
                 yield utils.exec(`tar -czf "${cachePath}/${pathKey}.tar.gz" "${path}"`);
                 core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
             }
-            yield utils.exec(`rm ${cachePath}/${key}/.partialCache`);
+            yield utils.exec(`rm ${cachePath}/.partialCache`);
         }
         catch (error) {
             actionUtils.logWarning(error.message);
