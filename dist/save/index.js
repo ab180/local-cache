@@ -3134,7 +3134,8 @@ function saveImpl() {
             yield utils.exec(`touch ${cachePath}/.partialCache`);
             for (const path of paths) {
                 const pathKey = crypto.createHash("md5").update(path).digest("hex");
-                yield utils.exec(`tar -czf "${cachePath}/${pathKey}.tar.gz" "${path}"`);
+                yield utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" "${path}"`);
+                yield utils.exec(`rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`);
                 core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
             }
             yield utils.exec(`rm ${cachePath}/.partialCache`);
