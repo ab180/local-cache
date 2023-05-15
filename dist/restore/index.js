@@ -4202,9 +4202,9 @@ function restoreImpl() {
             const lookupOnly = actionUtils.getInputAsBool(constants_1.Inputs.LookupOnly);
             const localCachePath = core.getInput(constants_1.Inputs.LocalCachePath);
             const find = yield utils.exec(`find ${localCachePath} -maxdepth 1 -name ${key} -type d`);
-            const isPartialCache = yield utils.exec(`find ${localCachePath}/${key} -maxdepth 1 -name .partialCache -type d`);
+            const partialCache = yield utils.exec(`find ${localCachePath}/${key} -maxdepth 1 -name .partialCache -type d || true`);
             const cacheFind = find.stdout ? true : false;
-            const cachePartial = isPartialCache.stdout ? true : false;
+            const cachePartial = partialCache.stdout ? true : false;
             const cacheHit = cacheFind && !cachePartial;
             if (!cacheHit) {
                 if (failOnCacheMiss) {
