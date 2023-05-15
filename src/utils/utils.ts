@@ -22,10 +22,10 @@ export const checkKey = (key: string): void => {
             `Key Validation Error: ${key} cannot be larger than 512 characters.`
         );
     }
-    const regex = /^[^,]*$/;
+    const regex = /^[^/]+$/;
     if (!regex.test(key)) {
         throw new ValidationError(
-            `Key Validation Error: ${key} cannot contain commas.`
+            `Key Validation Error: ${key} cannot contain slash.`
         );
     }
 };

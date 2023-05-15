@@ -18,6 +18,7 @@ async function restoreImpl(): Promise<string | undefined> {
         }
 
         const key = core.getInput(Inputs.Key, { required: true });
+        utils.checkKey(key);
 
         const paths = actionUtils.getInputAsArray(Inputs.Path, {
             required: true
@@ -31,7 +32,13 @@ async function restoreImpl(): Promise<string | undefined> {
         const find = await utils.exec(
             `find ${localCachePath} -maxdepth 1 -name ${key} -type d`
         );
-        const cacheHit = find.stdout ? true : false;
+        const isPartialCache = await utils.exec(
+            `find ${localCachePath}/${key} -maxdepth 1 -name .partialCache -type d`
+        );
+
+        const cacheFind = find.stdout ? true : false;
+        const cachePartial = isPartialCache.stdout ? true : false;
+        const cacheHit = cacheFind && !cachePartial;
 
         if (!cacheHit) {
             if (failOnCacheMiss) {
