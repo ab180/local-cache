@@ -71,6 +71,7 @@ async function restoreImpl(): Promise<string | undefined> {
                     `Cache restored from key: ${key}${path} -> ${pathKey}`
                 );
             }
+            core.setOutput("cache-hit", "true");
             core.saveState("cacheHit", "true");
         }
 
