@@ -44,9 +44,8 @@ async function saveImpl(): Promise<void> {
                     .createHash("md5")
                     .update(path)
                     .digest("hex");
-                await utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
                 await utils.exec(
-                    `rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`
+                    `rsync -a --no-perms ${path}/ ${cachePath}/${pathKey}"`
                 );
                 core.info(
                     `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`

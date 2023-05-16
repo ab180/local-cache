@@ -3139,8 +3139,7 @@ function saveImpl() {
                         .createHash("md5")
                         .update(path)
                         .digest("hex");
-                    yield utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
-                    yield utils.exec(`rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`);
+                    yield utils.exec(`rsync -a --no-perms ${path}/ ${cachePath}/${pathKey}"`);
                     core.info(`Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`);
                 }
                 yield utils.exec(`rm ${cachePath}/.partialCache`);
