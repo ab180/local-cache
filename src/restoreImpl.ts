@@ -67,7 +67,7 @@ async function restoreImpl(): Promise<string | undefined> {
                     .digest("hex");
                 await utils.exec(`mkdir -p "${path}"`);
                 await utils.exec(
-                    `tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`
+                    `tar -xf "${cachePath}/${pathKey}.tar" -C "${path}"`
                 );
                 core.info(
                     `Cache restored from key: ${key}${path} -> ${pathKey}`

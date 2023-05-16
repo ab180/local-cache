@@ -4230,7 +4230,7 @@ function restoreImpl() {
                         .update(path)
                         .digest("hex");
                     yield utils.exec(`mkdir -p "${path}"`);
-                    yield utils.exec(`tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`);
+                    yield utils.exec(`tar -xf "${cachePath}/${pathKey}.tar" -C "${path}"`);
                     core.info(`Cache restored from key: ${key}${path} -> ${pathKey}`);
                 }
                 core.setOutput("cache-hit", "true");

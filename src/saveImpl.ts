@@ -44,12 +44,12 @@ async function saveImpl(): Promise<void> {
                     .createHash("md5")
                     .update(path)
                     .digest("hex");
-                await utils.exec(`tar -czf "/tmp/${pathKey}.tar.gz" .`, path);
+                await utils.exec(`tar -cf "/tmp/${pathKey}.tar" .`, path);
                 await utils.exec(
-                    `rsync --checksum "/tmp/${pathKey}.tar.gz" "${cachePath}/${pathKey}.tar.gz"`
+                    `rsync --checksum "/tmp/${pathKey}.tar" "${cachePath}/${pathKey}.tar"`
                 );
                 core.info(
-                    `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar.gz"`
+                    `Cache saved to key: "${path}" -> "${cachePath}/${pathKey}.tar"`
                 );
             }
             await utils.exec(`rm ${cachePath}/.partialCache`);
