@@ -4233,6 +4233,7 @@ function restoreImpl() {
                     yield utils.exec(`tar -xzf "${cachePath}/${pathKey}.tar.gz" -C "${path}"`);
                     core.info(`Cache restored from key: ${key}${path} -> ${pathKey}`);
                 }
+                core.setOutput("cache-hit", "true");
                 core.saveState("cacheHit", "true");
             }
             return key;
